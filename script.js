@@ -1,9 +1,22 @@
+// 💾 FUNÇÃO PARA SALVAR TUDO NO NAVEGADOR (INCLUINDO A LIXEIRA)
+function salvarDados() {
+    localStorage.setItem('dportas_clientes', JSON.stringify(clientes));
+    localStorage.setItem('dportas_estoque', JSON.stringify(estoque));
+    localStorage.setItem('dportas_orcamentos', JSON.stringify(orcamentos));
+    localStorage.setItem('dportas_os', JSON.stringify(ordensServico));
+    localStorage.setItem('dportas_agenda', JSON.stringify(agenda));
+    localStorage.setItem('dportas_lixeira', JSON.stringify(lixeira));
+}
+
+// 🔄 CARREGANDO OS DADOS SALVOS
+let clientes = JSON.parse(localStorage.getItem('dportas_clientes')) || [];
+let estoque = JSON.parse(localStorage.getItem('dportas_estoque')) || [];
+let orcamentos = JSON.parse(localStorage.getItem('dportas_orcamentos')) || [];
+let ordensServico = JSON.parse(localStorage.getItem('dportas_os')) || [];
+let agenda = JSON.parse(localStorage.getItem('dportas_agenda')) || [];
+let lixeira = JSON.parse(localStorage.getItem('dportas_lixeira')) || [];
+
 let opcao;
-let clientes = [];
-let estoque = [];
-let orcamentos = [];
-let ordensServico = [];
-let agenda = [];
 
 // 📱 TELEFONE DO SEU PAI CONFIGURADO
 const TELEFONE_PAI = "19981376458"; 
@@ -25,6 +38,9 @@ Escolha uma opção:
 [12] Enviar Notificações (Cliente / Pai)
 [13] Alertas de Manutenção Preventiva (A cada 4 meses)
 [14] Alerta de Estoque Baixo
+[15] Sobre a DPortas (Apresentação)
+[16] Editar ou Remover Cadastros (Clientes/Estoque)
+[17] 🗑️ Lixeira Sistema DPortas
 [0] Sair do Sistema`));
 
     if (isNaN(opcao)) {
@@ -43,9 +59,10 @@ Escolha uma opção:
                 clientes.push({ 
                     nome: nomeCliente, 
                     telefone: telLimpo,
-                    periodoMeses: 4, // FIXADO EM 4 MESES
+                    periodoMeses: 4, 
                     ultimaVisita: ultimaVisita
                 });
+                salvarDados();
                 alert(`Cliente ${nomeCliente} cadastrado! Preventiva sugerida a cada 4 meses.`);
             } else {
                 alert("Cadastro cancelado. Preencha todos os dados corretamente.");
@@ -70,6 +87,7 @@ Escolha uma opção:
             
             if (nomeProduto && !isNaN(qtdProduto)) {
                 estoque.push({ produto: nomeProduto, quantidade: qtdProduto });
+                salvarDados();
                 alert(`${qtdProduto}x ${nomeProduto}(s) adicionado(s) ao estoque!`);
             } else {
                 alert("Erro ao cadastrar produto. Verifique os dados inseridos.");
@@ -95,6 +113,7 @@ Escolha uma opção:
 
             if (nomeParaOrcamento && servicoDescricao && !isNaN(valorServico)) {
                 orcamentos.push({ cliente: nomeParaOrcamento, descricao: servicoDescricao, valor: valorServico });
+                salvarDados();
                 let recibo = `==============================\n       ORÇAMENTO - DPORTAS      \n==============================\n\n👤 Cliente: ${nomeParaOrcamento}\n🛠️ Descrição: ${servicoDescricao}\n💰 Valor: R$ ${valorServico.toFixed(2)}\n\nGarantia de 90 dias.\n==============================`;
                 alert(recibo);
             } else {
@@ -120,6 +139,7 @@ Escolha uma opção:
             
             if (clienteOS && descOS) {
                 ordensServico.push({ cliente: clienteOS, descricao: descOS, status: "Em andamento" });
+                salvarDados();
                 let comprovanteOS = `==============================\n   ORDEM DE SERVIÇO - DPORTAS   \n==============================\n\n👤 Cliente: ${clienteOS}\n🛠️ Serviço: ${descOS}\n\nStatus: Em andamento\n==============================`;
                 alert(comprovanteOS);
             } else {
@@ -152,6 +172,7 @@ Escolha uma opção:
 
                 if (!isNaN(numeroOS) && indice >= 0 && indice < ordensServico.length) {
                     ordensServico[indice].status = "Concluída";
+                    salvarDados();
                     alert(`A O.S. do cliente ${ordensServico[indice].cliente} foi finalizada!`);
                 } else {
                     alert("Número inválido.");
@@ -167,6 +188,7 @@ Escolha uma opção:
 
             if (nomeAgenda && dataAgenda && horarioAgenda && servicoAgenda) {
                 agenda.push({ cliente: nomeAgenda, data: dataAgenda, horario: horarioAgenda, servico: servicoAgenda });
+                salvarDados();
                 alert(`Agendado para ${nomeAgenda} no dia ${dataAgenda} às ${horarioAgenda}!`);
             } else {
                 alert("Erro ao agendar.");
@@ -233,7 +255,6 @@ Escolha uma opção:
             break;
 
         case 14:
-            // LÓGICA DE ESTOQUE BAIXO
             if (estoque.length === 0) {
                 alert("O estoque está completamente vazio.");
             } else {
@@ -251,6 +272,113 @@ Escolha uma opção:
                     alert(estoqueBaixo);
                 } else {
                     alert("Tudo sob controle! Nenhum produto com menos de 5 unidades.");
+                }
+            }
+            break;
+
+        case 15:
+            let apresentacao = `======================================\n             SOBRE A DPORTAS             \n======================================\n\nA DPortas surgiu da união entre parcerias sólidas e a confiança conquistada ao longo dos anos.\n\nHoje, somos especialistas em portas de enrolar manuais e automáticas, oferecendo soluções sob medida com foco na agilidade, durabilidade e atendimento personalizado.\n\n======================================`;
+            alert(apresentacao);
+            break;
+
+        case 16:
+            // MENU DE EDIÇÃO E REMOÇÃO
+            let tipoGerenciar = Number(prompt(`O que você deseja gerenciar?\n[1] Clientes\n[2] Estoque`));
+            
+            if (tipoGerenciar === 1) {
+                if (clientes.length === 0) {
+                    alert("Não há clientes cadastrados para gerenciar.");
+                } else {
+                    let txt = "Selecione o Cliente que deseja alterar:\n\n";
+                    for (let i = 0; i < clientes.length; i++) {
+                        txt += `[${i + 1}] ${clientes[i].nome}\n`;
+                    }
+                    let idx = Number(prompt(txt)) - 1;
+
+                    if (idx >= 0 && idx < clientes.length) {
+                        let acao = Number(prompt(`Cliente selecionado: ${clientes[idx].nome}\n\n[1] Editar Dados\n[2] 🗑️ Mover para a Lixeira`));
+                        if (acao === 1) {
+                            let novoNome = prompt("Novo Nome:", clientes[idx].nome) || clientes[idx].nome;
+                            let novoTel = prompt("Novo Telefone:", clientes[idx].telefone) || clientes[idx].telefone;
+                            let novaVisita = prompt("Nova data de última visita:", clientes[idx].ultimaVisita) || clientes[idx].ultimaVisita;
+                            
+                            clientes[idx] = { nome: novoNome, telefone: novoTel.replace(/\D/g, ''), periodoMeses: 4, ultimaVisita: novaVisita };
+                            salvarDados();
+                            alert("Cadastro do cliente atualizado com sucesso!");
+                        } else if (acao === 2) {
+                            // Move para lixeira
+                            let removido = clientes.splice(idx, 1)[0];
+                            lixeira.push({ tipo: 'cliente', dados: removido });
+                            salvarDados();
+                            alert(`"${removido.nome}" foi movido para a Lixeira.`);
+                        }
+                    }
+                }
+            } else if (tipoGerenciar === 2) {
+                if (estoque.length === 0) {
+                    alert("Não há produtos no estoque para gerenciar.");
+                } else {
+                    let txt = "Selecione o Produto que deseja alterar:\n\n";
+                    for (let i = 0; i < estoque.length; i++) {
+                        txt += `[${i + 1}] ${estoque[i].produto} (${estoque[i].quantidade} un.)\n`;
+                    }
+                    let idx = Number(prompt(txt)) - 1;
+
+                    if (idx >= 0 && idx < estoque.length) {
+                        let acao = Number(prompt(`Produto selecionado: ${estoque[idx].produto}\n\n[1] Editar Dados\n[2] 🗑️ Mover para a Lixeira`));
+                        if (acao === 1) {
+                            let novoProd = prompt("Novo nome do produto:", estoque[idx].produto) || estoque[idx].produto;
+                            let novaQtd = Number(prompt("Nova quantidade:", estoque[idx].quantidade)) || estoque[idx].quantidade;
+                            
+                            estoque[idx] = { produto: novoProd, quantidade: novaQtd };
+                            salvarDados();
+                            alert("Estoque atualizado com sucesso!");
+                        } else if (acao === 2) {
+                            // Move para lixeira
+                            let removido = estoque.splice(idx, 1)[0];
+                            lixeira.push({ tipo: 'produto', dados: removido });
+                            salvarDados();
+                            alert(`"${removido.produto}" foi movido para a Lixeira.`);
+                        }
+                    }
+                }
+            }
+            break;
+
+        case 17:
+            // TELA DA LIXEIRA
+            if (lixeira.length === 0) {
+                alert("A lixeira está vazia.");
+            } else {
+                let txtLixeira = "🗑️ LIXEIRA DPORTAS - Selecione um item:\n\n";
+                for (let i = 0; i < lixeira.length; i++) {
+                    let nomeItem = lixeira[i].tipo === 'cliente' ? lixeira[i].dados.nome : lixeira[i].dados.produto;
+                    txtLixeira += `[${i + 1}] [${lixeira[i].tipo.toUpperCase()}] ${nomeItem}\n`;
+                }
+                
+                let idxLix = Number(prompt(txtLixeira)) - 1;
+                
+                if (idxLix >= 0 && idxLix < lixeira.length) {
+                    let itemSel = lixeira[idxLix];
+                    let nomeItemSel = itemSel.tipo === 'cliente' ? itemSel.dados.nome : itemSel.dados.produto;
+                    
+                    let acaoLix = Number(prompt(`Item: ${nomeItemSel}\n\n[1] 🔄 Restaurar (Devolver ao sistema)\n[2] ❌ Excluir Permanentemente`));
+                    
+                    if (acaoLix === 1) {
+                        // Devolve para a lista correta baseado no tipo
+                        if (itemSel.tipo === 'cliente') {
+                            clientes.push(itemSel.dados);
+                        } else if (itemSel.tipo === 'produto') {
+                            estoque.push(itemSel.dados);
+                        }
+                        lixeira.splice(idxLix, 1); // tira da lixeira
+                        salvarDados();
+                        alert(`"${nomeItemSel}" restaurado com sucesso!`);
+                    } else if (acaoLix === 2) {
+                        lixeira.splice(idxLix, 1); // remove definitivo
+                        salvarDados();
+                        alert(`"${nomeItemSel}" foi deletado definitivamente.`);
+                    }
                 }
             }
             break;
