@@ -82,6 +82,19 @@
                 <label>Valor Total (R$):</label>
                 <input type="text" id="orcValor" placeholder="Ex: 1173,00" required>
             </div>
+            
+            <div class="form-group">
+                <label>Forma de Pagamento:</label>
+                <select id="orcPagamento" required>
+                    <option value="" disabled selected>Selecione uma opção</option>
+                    <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                    <option value="Cartão de Débito">💳 Cartão de Débito</option>
+                    <option value="Boleto">📄 Boleto</option>
+                    <option value="Pix">💠 Pix (5% de desconto)</option>
+                    <option value="Dinheiro">💵 Dinheiro (5% de desconto)</option>
+                </select>
+            </div>
+
             <button type="submit" class="btn-salvar">Salvar Orçamento</button>
         </form>
         <div id="listaOrcamentos" class="lista"></div>

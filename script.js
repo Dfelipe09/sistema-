@@ -39,7 +39,7 @@ function atualizarTodasListas() {
     });
     document.getElementById('listaClientes').innerHTML = "<h3>Lista de Clientes</h3>" + htmlClientes;
 
-    // Estoque (ATUALIZADO COM ENTRADA E SAÍDA)
+    // Estoque
     let htmlEstoque = bd.estoque.length ? "" : "<p>Estoque vazio.</p>";
     bd.estoque.forEach((e, i) => {
         let alerta = e.quantidade < 5 ? `<span style="color:red; font-weight:bold;">(Estoque Baixo!)</span>` : "";
@@ -55,13 +55,20 @@ function atualizarTodasListas() {
     });
     document.getElementById('listaEstoque').innerHTML = "<h3>Estoque Atual</h3>" + htmlEstoque;
 
-    // Orçamentos
+    // Orçamentos (ATUALIZADO COM FORMA DE PAGAMENTO E DESCONTO)
     let htmlOrc = bd.orcamentos.length ? "" : "<p>Nenhum orçamento salvo.</p>";
     bd.orcamentos.forEach((o, i) => {
+        let valorFormatado = o.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        
+        // Verifica se teve desconto para mostrar uma tag verde bonita
+        let badgeDesconto = o.desconto ? `<span style="color: #27ae60; font-size: 12px; font-weight: bold; margin-left: 5px;">(5% OFF aplicado)</span>` : "";
+        let formaPag = o.pagamento ? o.pagamento : "Não informada";
+
         htmlOrc += `<div class="item-lista">
             <div class="item-header"><strong>Cliente: ${o.cliente}</strong></div>
             <span>🛠️ ${o.descricao}</span>
-            <span>💰 Valor: R$ ${o.valor.toFixed(2)}</span>
+            <span>💳 Pagamento: <strong>${formaPag}</strong></span>
+            <span>💰 Valor Final: <strong>${valorFormatado}</strong> ${badgeDesconto}</span>
             <div><button class="btn-acao btn-del" onclick="moverParaLixeira('orcamentos', ${i})">🗑️ Apagar</button></div>
         </div>`;
     });
@@ -110,19 +117,14 @@ function atualizarTodasListas() {
     document.getElementById('listaLixeira').innerHTML = htmlLixeira;
 }
 
-// --- 4. AÇÕES DOS BOTÕES (INCLUINDO NOVA FUNÇÃO DE ESTOQUE) ---
+// --- 4. AÇÕES DOS BOTÕES ---
 function alterarEstoque(index, operacao) {
     let acaoTexto = operacao === 'add' ? "ADICIONAR ao" : "REMOVER do";
     let produtoNome = bd.estoque[index].produto;
-    
     let qtdStr = prompt(`Quantos itens você deseja ${acaoTexto} estoque de "${produtoNome}"?`);
-    
-    // Se a pessoa cancelar ou deixar vazio, não faz nada
     if (qtdStr === null || qtdStr.trim() === "") return; 
-    
     let qtd = parseInt(qtdStr);
     
-    // Verifica se digitou um número válido
     if (isNaN(qtd) || qtd <= 0) {
         alert("Por favor, digite um número válido maior que zero.");
         return;
@@ -188,14 +190,38 @@ document.getElementById('formEstoque').onsubmit = (e) => {
     e.target.reset(); salvarTudo(); alert('Produto salvo!');
 };
 
+// ORÇAMENTOS: SALVANDO E CALCULANDO DESCONTO
 document.getElementById('formOrcamento').onsubmit = (e) => {
     e.preventDefault();
+    
+    let valorDigitado = document.getElementById('orcValor').value;
+    let valorTratado = parseFloat(valorDigitado.replace(/\./g, '').replace(',', '.'));
+    let formaPgto = document.getElementById('orcPagamento').value;
+
+    if (isNaN(valorTratado)) {
+        alert("Por favor, digite um valor numérico válido.");
+        return;
+    }
+
+    let valorFinal = valorTratado;
+    let teveDesconto = false;
+
+    // Se for Pix ou Dinheiro, aplica 5% de desconto
+    if (formaPgto === "Pix" || formaPgto === "Dinheiro") {
+        valorFinal = valorTratado - (valorTratado * 0.05);
+        teveDesconto = true;
+    }
+
     bd.orcamentos.push({
         cliente: document.getElementById('orcCliente').value,
         descricao: document.getElementById('orcDesc').value,
-        valor: Number(document.getElementById('orcValor').value)
+        valorOriginal: valorTratado,
+        valor: valorFinal,
+        pagamento: formaPgto,
+        desconto: teveDesconto
     });
-    e.target.reset(); salvarTudo(); alert('Orçamento salvo!');
+    
+    e.target.reset(); salvarTudo(); alert('Orçamento salvo com sucesso!');
 };
 
 document.getElementById('formOS').onsubmit = (e) => {
