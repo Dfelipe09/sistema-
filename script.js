@@ -55,23 +55,24 @@ function atualizarTodasListas() {
     });
     document.getElementById('listaEstoque').innerHTML = "<h3>Estoque Atual</h3>" + htmlEstoque;
 
-    // Orçamentos Salvos (AGORA DINÂMICO E COM BOTÃO DE PDF)
-    let htmlOrcamentos = bd.orcamentos.length ? "" : "<p>Nenhum orçamento salvo.</p>";
+    // Histórico de Orçamentos (Vai para a nova aba)
+    let htmlOrcamentos = bd.orcamentos.length ? "" : "<p>Nenhum orçamento salvo no histórico.</p>";
     bd.orcamentos.forEach((orc, i) => {
         let valorFmt = orc.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        let msgWpp = `*Orçamento DPortas*\nCliente: ${orc.cliente}\nValor: ${valorFmt}`;
+        let textoFmtCurto = `*Orçamento DPortas*\nCliente: ${orc.cliente}\nValor: ${valorFmt}\nServiço: ${orc.descricao}`;
+        
         htmlOrcamentos += `<div class="item-lista">
             <div class="item-header"><strong>Nº ${i+1001} - ${orc.cliente}</strong> <span class="badge badge-ok">${orc.dataGerado}</span></div>
             <span style="font-size:13px; color:#555; max-width: 90%; display:block; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${orc.descricao}</span>
             <span><strong>Valor:</strong> ${valorFmt} (${orc.pagamento})</span>
-            <div>
+            <div style="margin-top: 10px;">
                 <button class="btn-acao btn-pdf" onclick="gerarPDF(${i})">📄 Gerar PDF</button>
-                <button class="btn-acao btn-wpp" onclick="window.open('https://wa.me/?text=${encodeURIComponent(msgWpp)}', '_blank')">📱 Wpp</button>
+                <button class="btn-acao btn-wpp" onclick="window.open('https://wa.me/?text=${encodeURIComponent(textoFmtCurto)}', '_blank')">📱 Enviar Wpp</button>
                 <button class="btn-acao btn-del" onclick="moverParaLixeira('orcamentos', ${i})">🗑️ Apagar</button>
             </div>
         </div>`;
     });
-    document.getElementById('listaOrcamentos').innerHTML = "<h3>Orçamentos Salvos</h3>" + htmlOrcamentos;
+    document.getElementById('listaOrcamentos').innerHTML = htmlOrcamentos;
 
     // O.S.
     let htmlOS = bd.os.length ? "" : "<p>Nenhuma O.S. aberta.</p>";
@@ -116,7 +117,8 @@ function atualizarTodasListas() {
     document.getElementById('listaLixeira').innerHTML = htmlLixeira;
 }
 
-// --- 4. FUNÇÃO MÁGICA: GERAR DOCUMENTO DO ORÇAMENTO EM PDF ESTILO PROFISSIONAL ---
+// --- 4. GERADOR DE PDF 100% CORRIGIDO E FUNCIONAL ---
+// Agora ele abre em uma NOVA ABA, monta o documento e aciona a impressão.
 function gerarPDF(index) {
     let orc = bd.orcamentos[index];
     let numOrc = index + 1001;
@@ -124,54 +126,59 @@ function gerarPDF(index) {
     let valOriginalFmt = orc.valorOriginal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     let valFinalFmt = orc.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     
-    // Abrir nova janela limpa para impressão limpa
-    let janelaImpressao = window.open('', '_blank');
+    // Abre uma nova janela do navegador
+    let janelaPDF = window.open('', '_blank');
     
-    janelaImpressao.document.write(`
+    if (!janelaPDF) {
+        alert("O seu navegador bloqueou a janela. Por favor, permita pop-ups para este site.");
+        return;
+    }
+
+    // Escreve o código HTML do orçamento corporativo na nova janela
+    janelaPDF.document.write(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <title>Orçamento DPortas #${numOrc}</title>
         <style>
-            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 25px; color: #333; line-height: 1.5; background-color: #fff; }
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 30px; color: #333; line-height: 1.5; background-color: #fff; }
             .header-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
             .header-logo { width: 40%; vertical-align: middle; }
             .header-logo img { max-width: 200px; height: auto; border-radius: 6px; }
-            .header-dados { width: 60%; text-align: right; font-size: 12px; color: #555; }
-            .header-dados h2 { margin: 0 0 5px 0; color: #2c3e50; font-size: 20px; }
+            .header-dados { width: 60%; text-align: right; font-size: 13px; color: #555; }
+            .header-dados h2 { margin: 0 0 5px 0; color: #2c3e50; font-size: 22px; }
             
-            .titulo-doc { text-align: center; background: #2c3e50; color: white; padding: 8px; font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px; }
+            .titulo-doc { text-align: center; background: #2c3e50; color: white; padding: 10px; font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 1px; }
             
             .info-grid { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-            .info-box { border: 1px solid #ddd; padding: 12px; width: 50%; vertical-align: top; font-size: 13px; background: #fafafa; }
-            .info-box h3 { margin: 0 0 8px 0; color: #2c3e50; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+            .info-box { border: 1px solid #ddd; padding: 15px; width: 50%; vertical-align: top; font-size: 14px; background: #fafafa; }
+            .info-box h3 { margin: 0 0 8px 0; color: #2c3e50; font-size: 15px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
             
-            .tabela-itens { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px; }
-            .tabela-itens th { background: #34495e; color: white; padding: 10px; text-align: left; text-transform: uppercase; font-size: 11px; }
-            .tabela-itens td { padding: 12px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
-            .tabela-itens tr:nth-child(even) { background: #fdfdfd; }
+            .tabela-itens { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px; }
+            .tabela-itens th { background: #34495e; color: white; padding: 12px; text-align: left; text-transform: uppercase; font-size: 12px; }
+            .tabela-itens td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
             
             .total-container { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 30px; }
-            .total-box { border: 2px solid #2c3e50; background: #f4f6f7; padding: 15px; font-size: 14px; text-align: right; width: 40%; margin-left: auto; }
-            .total-box div { margin-bottom: 5px; }
+            .total-box { border: 2px solid #2c3e50; background: #f4f6f7; padding: 15px; font-size: 15px; text-align: right; width: 50%; margin-left: auto; }
             .total-box .destaque-preco { font-size: 18px; font-weight: bold; color: #27ae60; border-top: 1px dashed #ccc; margin-top: 5px; padding-top: 5px; }
             
-            .obs-box { border: 1px dashed #bbb; background: #fffcf5; padding: 15px; font-size: 12px; color: #666; margin-bottom: 40px; border-radius: 4px; }
+            .obs-box { border: 1px dashed #bbb; background: #fffcf5; padding: 15px; font-size: 13px; color: #666; margin-bottom: 50px; border-radius: 4px; }
             .obs-box h4 { margin: 0 0 5px 0; color: #c0392b; }
             
-            .assinatura-container { width: 100%; margin-top: 50px; text-align: center; font-size: 13px; }
+            .assinatura-container { width: 100%; margin-top: 60px; text-align: center; font-size: 14px; }
             .linha-assinatura { width: 250px; border-bottom: 1px solid #333; margin: 0 auto 5px auto; }
             
             @media print {
+                .btn-imprimir { display: none !important; }
                 body { padding: 0; }
-                .no-print { display: none; }
             }
-            .btn-imprimir { background: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; display: block; margin: 0 auto 20px auto; }
+            .btn-imprimir { background: #27ae60; color: white; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; display: block; margin: 0 auto 30px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .btn-imprimir:hover { background: #219150; }
         </style>
     </head>
     <body>
-        <button class="btn-imprimir no-print" onclick="window.print()">📥 Salvar como PDF / Imprimir</button>
+        <button class="btn-imprimir" onclick="window.print()">📥 Imprimir / Salvar PDF</button>
 
         <table class="header-table">
             <tr>
@@ -195,14 +202,12 @@ function gerarPDF(index) {
                 <td class="info-box" style="border-right: none;">
                     <h3>Dados do Cliente</h3>
                     <strong>Cliente:</strong> ${orc.cliente}<br>
-                    <strong>Status:</strong> Aprovado via Sistema<br>
-                    <strong>Local do Serviço:</strong> Conforme Visita Técnica
+                    <strong>Status:</strong> Aguardando Aprovação
                 </td>
                 <td class="info-box">
                     <h3>Informações da Proposta</h3>
                     <strong>Data de Emissão:</strong> ${orc.dataGerado}<br>
-                    <strong>Validade da Proposta:</strong> 5 dias após emissão<br>
-                    <strong>Previsão de Entrega:</strong> A combinar após aprovação
+                    <strong>Validade da Proposta:</strong> 5 dias úteis
                 </td>
             </tr>
         </table>
@@ -228,19 +233,19 @@ function gerarPDF(index) {
 
         <table style="width: 100%;">
             <tr>
-                <td style="width: 55%; vertical-align: top;">
-                    <div style="font-size: 13px;">
+                <td style="width: 50%; vertical-align: top;">
+                    <div style="font-size: 14px;">
                         <strong>Forma de Pagamento Selecionada:</strong><br>
                         🔹 ${orc.pagamento}
                     </div>
                 </td>
-                <td style="width: 45%; vertical-align: top;">
+                <td style="width: 50%; vertical-align: top;">
                     <table class="total-container">
                         <tr>
                             <td>
                                 <div class="total-box">
-                                    <div>Subtotal: ${valOriginalFmt}</div>
-                                    <div>Descontos/Taxas: ${orc.desconto ? "-5% Aplicado" : "R$ 0,00"}</div>
+                                    <div style="margin-bottom: 5px;">Subtotal: ${valOriginalFmt}</div>
+                                    <div style="margin-bottom: 5px;">Descontos: ${orc.desconto ? "-5% Aplicado" : "R$ 0,00"}</div>
                                     <div class="destaque-preco">Valor Líquido: ${valFinalFmt}</div>
                                 </div>
                             </td>
@@ -254,7 +259,7 @@ function gerarPDF(index) {
             <h4>Observações Importantes:</h4>
             • Orçamento condicionado à visita técnica presencial para validação estrutural final.<br>
             • Instalações agendadas de segunda a sexta-feira em horário comercial padrão.<br>
-            • Adequações estruturais do vão, remoção de portões antigos e ponto elétrico de alimentação são de responsabilidade do cliente, exceto se contratado previamente.
+            • Adequações estruturais do vão e ponto elétrico são de responsabilidade do cliente, exceto se especificado no orçamento.
         </div>
 
         <table class="assinatura-container">
@@ -269,11 +274,15 @@ function gerarPDF(index) {
                 </td>
             </tr>
         </table>
+        
+        <script>
+            setTimeout(() => { window.print(); }, 800);
+        </script>
     </body>
     </html>
     `);
     
-    janelaImpressao.document.close();
+    janelaPDF.document.close();
 }
 
 // --- 5. OUTRAS AÇÕES DOS BOTÕES ---
@@ -314,7 +323,6 @@ function restaurarLixeira(index) {
     let item = bd.lixeira.splice(index, 1)[0];
     bd[item.tipo].push(item.dados);
     salvarTudo();
-    alert("Item restaurado com sucesso!");
 }
 
 function excluirPermanente(index) {
@@ -349,7 +357,7 @@ document.getElementById('formEstoque').onsubmit = (e) => {
     e.target.reset(); salvarTudo(); alert('Produto salvo!');
 };
 
-// ORÇAMENTO: SALVA, ATUALIZA A TELA E ABRE O WHATSAPP
+// ORÇAMENTO: SALVA E ABRE WHATSAPP IMEDIATAMENTE (O PDF FICA NO HISTÓRICO)
 document.getElementById('formOrcamento').onsubmit = (e) => {
     e.preventDefault();
     
@@ -375,6 +383,7 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
         teveDesconto = true;
     }
 
+    // Salva no banco de dados
     bd.orcamentos.push({
         cliente: cliente,
         descricao: descricao,
@@ -384,15 +393,16 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
         desconto: teveDesconto,
         dataGerado: new Date().toLocaleDateString('pt-BR')
     });
-    
-    e.target.reset(); 
-    salvarTudo(); // Salva e atualiza listas da tela de forma limpa!
-    alert('Orçamento salvo com sucesso na lista inferior! Abrindo WhatsApp...');
+    salvarTudo(); 
 
+    alert('✅ Orçamento salvo! Redirecionando para o WhatsApp...\nPara gerar o PDF, acesse a aba "Histórico".');
+
+    // Abre o WhatsApp
     let valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     let textoWpp = `*Orçamento - DPortas* 🚪\n\n👤 *Cliente:* ${cliente}\n🛠️ *Serviço:* ${descricao}\n💳 *Forma de Pagamento:* ${formaPgto}\n💰 *Valor Final:* ${valorFormatado}${msgDesconto}\n\nFicamos à disposição!`;
-
     window.open(`https://wa.me/?text=${encodeURIComponent(textoWpp)}`, '_blank');
+    
+    e.target.reset(); 
 };
 
 document.getElementById('formOS').onsubmit = (e) => {

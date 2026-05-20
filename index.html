@@ -47,7 +47,8 @@
     <div class="menu">
         <button id="btn-clientes" class="ativo" onclick="mudarTela('clientes')">👥 Clientes</button>
         <button id="btn-estoque" onclick="mudarTela('estoque')">📦 Estoque</button>
-        <button id="btn-orcamentos" onclick="mudarTela('orcamentos')">💰 Orçamentos</button>
+        <button id="btn-orcamentos" onclick="mudarTela('orcamentos')">💰 Novo Orçamento</button>
+        <button id="btn-historico" onclick="mudarTela('historico')">📑 Histórico</button>
         <button id="btn-os" onclick="mudarTela('os')">🛠️ O.S.</button>
         <button id="btn-agenda" onclick="mudarTela('agenda')">📅 Agenda</button>
         <button id="btn-lixeira" onclick="mudarTela('lixeira')">🗑️ Lixeira</button>
@@ -94,8 +95,13 @@
                     <option value="Dinheiro">💵 Dinheiro (5% de desconto)</option>
                 </select>
             </div>
-            <button type="submit" class="btn-salvar" style="background-color: #25D366;">📱 Gerar e Enviar para WhatsApp</button>
+            <button type="submit" class="btn-salvar" style="background-color: #25D366;">📱 Salvar e Enviar para WhatsApp</button>
         </form>
+    </div>
+
+    <div id="tela-historico" class="tela">
+        <h2>Controle de Orçamentos</h2>
+        <p style="text-align:center; font-size:14px; color:#666;">Aqui ficam todos os orçamentos que você já gerou. Clique em Gerar PDF para criar a folha do cliente.</p>
         <div id="listaOrcamentos" class="lista"></div>
     </div>
 
