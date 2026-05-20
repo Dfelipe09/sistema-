@@ -55,23 +55,6 @@ function atualizarTodasListas() {
     });
     document.getElementById('listaEstoque').innerHTML = "<h3>Estoque Atual</h3>" + htmlEstoque;
 
-    // Orçamentos
-    let htmlOrc = bd.orcamentos.length ? "" : "<p>Nenhum orçamento salvo.</p>";
-    bd.orcamentos.forEach((o, i) => {
-        let valorFormatado = o.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        let badgeDesconto = o.desconto ? `<span style="color: #27ae60; font-size: 12px; font-weight: bold; margin-left: 5px;">(5% OFF aplicado)</span>` : "";
-        let formaPag = o.pagamento ? o.pagamento : "Não informada";
-
-        htmlOrc += `<div class="item-lista">
-            <div class="item-header"><strong>Cliente: ${o.cliente}</strong></div>
-            <span>🛠️ ${o.descricao}</span>
-            <span>💳 Pagamento: <strong>${formaPag}</strong></span>
-            <span>💰 Valor Final: <strong>${valorFormatado}</strong> ${badgeDesconto}</span>
-            <div><button class="btn-acao btn-del" onclick="moverParaLixeira('orcamentos', ${i})">🗑️ Apagar</button></div>
-        </div>`;
-    });
-    document.getElementById('listaOrcamentos').innerHTML = "<h3>Orçamentos Salvos</h3>" + htmlOrc;
-
     // O.S.
     let htmlOS = bd.os.length ? "" : "<p>Nenhuma O.S. aberta.</p>";
     bd.os.forEach((os, i) => {
@@ -188,18 +171,20 @@ document.getElementById('formEstoque').onsubmit = (e) => {
     e.target.reset(); salvarTudo(); alert('Produto salvo!');
 };
 
-// ORÇAMENTO: SALVAR NO SISTEMA E ABRIR WHATSAPP
+// --- ORÇAMENTO: SALVA NO BANCO SILENCIOSAMENTE E ABRE WHATSAPP ---
 document.getElementById('formOrcamento').onsubmit = (e) => {
     e.preventDefault();
     
     let cliente = document.getElementById('orcCliente').value;
     let descricao = document.getElementById('orcDesc').value;
     let valorDigitado = document.getElementById('orcValor').value;
+    
+    // Converte o que for digitado (ex: 1.173,00 ou 1173) para número do Javascript
     let valorTratado = parseFloat(valorDigitado.replace(/\./g, '').replace(',', '.'));
     let formaPgto = document.getElementById('orcPagamento').value;
 
     if (isNaN(valorTratado)) {
-        alert("Por favor, digite um valor numérico válido.");
+        alert("Por favor, digite um valor válido. Exemplo: 1173 ou 1173,00");
         return;
     }
 
@@ -214,18 +199,19 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
         teveDesconto = true;
     }
 
-    // 1. SALVAR NO SISTEMA
+    // 1. SALVAR NO BANCO DE DADOS LOCAL (Fica oculto na tela, mas gravado)
     bd.orcamentos.push({
         cliente: cliente,
         descricao: descricao,
         valorOriginal: valorTratado,
         valor: valorFinal,
         pagamento: formaPgto,
-        desconto: teveDesconto
+        desconto: teveDesconto,
+        dataGerado: new Date().toLocaleDateString('pt-BR')
     });
-    salvarTudo(); // Atualiza a lista na tela e salva os dados
+    localStorage.setItem('dp_orcamentos', JSON.stringify(bd.orcamentos));
 
-    // 2. ENVIAR PARA WHATSAPP
+    // 2. MONTAGEM DA MENSAGEM DO WHATSAPP
     let valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     let textoWpp = `*Orçamento - DPortas* 🚪\n\n`;
@@ -233,12 +219,12 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
     textoWpp += `🛠️ *Serviço:* ${descricao}\n`;
     textoWpp += `💳 *Forma de Pagamento:* ${formaPgto}\n`;
     textoWpp += `💰 *Valor Final:* ${valorFormatado}${msgDesconto}\n\n`;
-    textoWpp += `Podemos confirmar o serviço?`;
+    textoWpp += `Ficamos à disposição! Podemos confirmar o serviço?`;
 
-    // Abre a janela do WhatsApp
+    // 3. ABRIR WHATSAPP
     window.open(`https://wa.me/?text=${encodeURIComponent(textoWpp)}`, '_blank');
     
-    // Limpa os campos do formulário
+    // Limpa os campos do formulário para o próximo uso
     e.target.reset(); 
 };
 

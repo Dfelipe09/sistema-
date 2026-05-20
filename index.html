@@ -80,9 +80,8 @@
             <div class="form-group"><label>Descrição do Serviço:</label><input type="text" id="orcDesc" required></div>
             <div class="form-group">
                 <label>Valor Total (R$):</label>
-                <input type="text" id="orcValor" placeholder="Ex: 1173,00" required>
+                <input type="text" id="orcValor" placeholder="Ex: 1173 ou 1173,00" required autocomplete="off">
             </div>
-            
             <div class="form-group">
                 <label>Forma de Pagamento:</label>
                 <select id="orcPagamento" required>
@@ -94,10 +93,8 @@
                     <option value="Dinheiro">💵 Dinheiro (5% de desconto)</option>
                 </select>
             </div>
-
-            <button type="submit" class="btn-salvar">Salvar Orçamento</button>
+            <button type="submit" class="btn-salvar" style="background-color: #25D366;">📱 Gerar e Enviar para WhatsApp</button>
         </form>
-        <div id="listaOrcamentos" class="lista"></div>
     </div>
 
     <div id="tela-os" class="tela">
