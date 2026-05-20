@@ -78,7 +78,10 @@
         <form id="formOrcamento">
             <div class="form-group"><label>Nome do Cliente:</label><input type="text" id="orcCliente" required></div>
             <div class="form-group"><label>Descrição do Serviço:</label><input type="text" id="orcDesc" required></div>
-            <div class="form-group"><label>Valor Total (R$):</label><input type="number" step="0.01" id="orcValor" required></div>
+            <div class="form-group">
+                <label>Valor Total (R$):</label>
+                <input type="text" id="orcValor" placeholder="Ex: 1173,00" required>
+            </div>
             <button type="submit" class="btn-salvar">Salvar Orçamento</button>
         </form>
         <div id="listaOrcamentos" class="lista"></div>
