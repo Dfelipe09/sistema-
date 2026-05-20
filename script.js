@@ -39,14 +39,18 @@ function atualizarTodasListas() {
     });
     document.getElementById('listaClientes').innerHTML = "<h3>Lista de Clientes</h3>" + htmlClientes;
 
-    // Estoque
+    // Estoque (ATUALIZADO COM ENTRADA E SAÍDA)
     let htmlEstoque = bd.estoque.length ? "" : "<p>Estoque vazio.</p>";
     bd.estoque.forEach((e, i) => {
         let alerta = e.quantidade < 5 ? `<span style="color:red; font-weight:bold;">(Estoque Baixo!)</span>` : "";
         htmlEstoque += `<div class="item-lista">
             <div class="item-header"><strong>${e.produto}</strong></div>
             <span>Quantidade: ${e.quantidade} un. ${alerta}</span>
-            <div><button class="btn-acao btn-del" onclick="moverParaLixeira('estoque', ${i})">🗑️ Apagar</button></div>
+            <div style="margin-top: 10px;">
+                <button class="btn-acao btn-ok" onclick="alterarEstoque(${i}, 'add')">➕ Entrada</button>
+                <button class="btn-acao" style="background-color: #f39c12; color: white;" onclick="alterarEstoque(${i}, 'sub')">➖ Saída</button>
+                <button class="btn-acao btn-del" onclick="moverParaLixeira('estoque', ${i})">🗑️ Apagar</button>
+            </div>
         </div>`;
     });
     document.getElementById('listaEstoque').innerHTML = "<h3>Estoque Atual</h3>" + htmlEstoque;
@@ -106,7 +110,37 @@ function atualizarTodasListas() {
     document.getElementById('listaLixeira').innerHTML = htmlLixeira;
 }
 
-// --- 4. AÇÕES DOS BOTÕES ---
+// --- 4. AÇÕES DOS BOTÕES (INCLUINDO NOVA FUNÇÃO DE ESTOQUE) ---
+function alterarEstoque(index, operacao) {
+    let acaoTexto = operacao === 'add' ? "ADICIONAR ao" : "REMOVER do";
+    let produtoNome = bd.estoque[index].produto;
+    
+    let qtdStr = prompt(`Quantos itens você deseja ${acaoTexto} estoque de "${produtoNome}"?`);
+    
+    // Se a pessoa cancelar ou deixar vazio, não faz nada
+    if (qtdStr === null || qtdStr.trim() === "") return; 
+    
+    let qtd = parseInt(qtdStr);
+    
+    // Verifica se digitou um número válido
+    if (isNaN(qtd) || qtd <= 0) {
+        alert("Por favor, digite um número válido maior que zero.");
+        return;
+    }
+
+    if (operacao === 'add') {
+        bd.estoque[index].quantidade += qtd;
+    } else if (operacao === 'sub') {
+        if (bd.estoque[index].quantidade >= qtd) {
+            bd.estoque[index].quantidade -= qtd;
+        } else {
+            alert(`Erro: Você só tem ${bd.estoque[index].quantidade} unidades no estoque. Não é possível remover ${qtd}.`);
+            return;
+        }
+    }
+    salvarTudo();
+}
+
 function moverParaLixeira(tipo, index) {
     if(confirm("Deseja enviar este item para a lixeira?")) {
         let removido = bd[tipo].splice(index, 1)[0];
