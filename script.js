@@ -55,6 +55,24 @@ function atualizarTodasListas() {
     });
     document.getElementById('listaEstoque').innerHTML = "<h3>Estoque Atual</h3>" + htmlEstoque;
 
+    // Orçamentos Salvos (AGORA DINÂMICO E COM BOTÃO DE PDF)
+    let htmlOrcamentos = bd.orcamentos.length ? "" : "<p>Nenhum orçamento salvo.</p>";
+    bd.orcamentos.forEach((orc, i) => {
+        let valorFmt = orc.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        let msgWpp = `*Orçamento DPortas*\nCliente: ${orc.cliente}\nValor: ${valorFmt}`;
+        htmlOrcamentos += `<div class="item-lista">
+            <div class="item-header"><strong>Nº ${i+1001} - ${orc.cliente}</strong> <span class="badge badge-ok">${orc.dataGerado}</span></div>
+            <span style="font-size:13px; color:#555; max-width: 90%; display:block; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${orc.descricao}</span>
+            <span><strong>Valor:</strong> ${valorFmt} (${orc.pagamento})</span>
+            <div>
+                <button class="btn-acao btn-pdf" onclick="gerarPDF(${i})">📄 Gerar PDF</button>
+                <button class="btn-acao btn-wpp" onclick="window.open('https://wa.me/?text=${encodeURIComponent(msgWpp)}', '_blank')">📱 Wpp</button>
+                <button class="btn-acao btn-del" onclick="moverParaLixeira('orcamentos', ${i})">🗑️ Apagar</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('listaOrcamentos').innerHTML = "<h3>Orçamentos Salvos</h3>" + htmlOrcamentos;
+
     // O.S.
     let htmlOS = bd.os.length ? "" : "<p>Nenhuma O.S. aberta.</p>";
     bd.os.forEach((os, i) => {
@@ -98,7 +116,167 @@ function atualizarTodasListas() {
     document.getElementById('listaLixeira').innerHTML = htmlLixeira;
 }
 
-// --- 4. AÇÕES DOS BOTÕES ---
+// --- 4. FUNÇÃO MÁGICA: GERAR DOCUMENTO DO ORÇAMENTO EM PDF ESTILO PROFISSIONAL ---
+function gerarPDF(index) {
+    let orc = bd.orcamentos[index];
+    let numOrc = index + 1001;
+    
+    let valOriginalFmt = orc.valorOriginal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    let valFinalFmt = orc.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    
+    // Abrir nova janela limpa para impressão limpa
+    let janelaImpressao = window.open('', '_blank');
+    
+    janelaImpressao.document.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <title>Orçamento DPortas #${numOrc}</title>
+        <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 25px; color: #333; line-height: 1.5; background-color: #fff; }
+            .header-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+            .header-logo { width: 40%; vertical-align: middle; }
+            .header-logo img { max-width: 200px; height: auto; border-radius: 6px; }
+            .header-dados { width: 60%; text-align: right; font-size: 12px; color: #555; }
+            .header-dados h2 { margin: 0 0 5px 0; color: #2c3e50; font-size: 20px; }
+            
+            .titulo-doc { text-align: center; background: #2c3e50; color: white; padding: 8px; font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px; }
+            
+            .info-grid { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            .info-box { border: 1px solid #ddd; padding: 12px; width: 50%; vertical-align: top; font-size: 13px; background: #fafafa; }
+            .info-box h3 { margin: 0 0 8px 0; color: #2c3e50; font-size: 14px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+            
+            .tabela-itens { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px; }
+            .tabela-itens th { background: #34495e; color: white; padding: 10px; text-align: left; text-transform: uppercase; font-size: 11px; }
+            .tabela-itens td { padding: 12px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+            .tabela-itens tr:nth-child(even) { background: #fdfdfd; }
+            
+            .total-container { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 30px; }
+            .total-box { border: 2px solid #2c3e50; background: #f4f6f7; padding: 15px; font-size: 14px; text-align: right; width: 40%; margin-left: auto; }
+            .total-box div { margin-bottom: 5px; }
+            .total-box .destaque-preco { font-size: 18px; font-weight: bold; color: #27ae60; border-top: 1px dashed #ccc; margin-top: 5px; padding-top: 5px; }
+            
+            .obs-box { border: 1px dashed #bbb; background: #fffcf5; padding: 15px; font-size: 12px; color: #666; margin-bottom: 40px; border-radius: 4px; }
+            .obs-box h4 { margin: 0 0 5px 0; color: #c0392b; }
+            
+            .assinatura-container { width: 100%; margin-top: 50px; text-align: center; font-size: 13px; }
+            .linha-assinatura { width: 250px; border-bottom: 1px solid #333; margin: 0 auto 5px auto; }
+            
+            @media print {
+                body { padding: 0; }
+                .no-print { display: none; }
+            }
+            .btn-imprimir { background: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; display: block; margin: 0 auto 20px auto; }
+        </style>
+    </head>
+    <body>
+        <button class="btn-imprimir no-print" onclick="window.print()">📥 Salvar como PDF / Imprimir</button>
+
+        <table class="header-table">
+            <tr>
+                <td class="header-logo">
+                    <img src="https://i.postimg.cc/7hvGT8cp/logo-sistema.jpg" alt="DPortas Logo">
+                </td>
+                <td class="header-dados">
+                    <h2>DPORTAS AUTOMATIZAÇÕES</h2>
+                    <strong>Portas de Aço Automáticas e Manuais</strong><br>
+                    Instalação, Manutenção Preventiva e Corretiva<br>
+                    Contato: (19) 99999-9999 | dportascontato@gmail.com<br>
+                    Sumaré - SP e Região
+                </td>
+            </tr>
+        </table>
+
+        <div class="titulo-doc">Orçamento de Serviço nº ${numOrc}</div>
+
+        <table class="info-grid">
+            <tr>
+                <td class="info-box" style="border-right: none;">
+                    <h3>Dados do Cliente</h3>
+                    <strong>Cliente:</strong> ${orc.cliente}<br>
+                    <strong>Status:</strong> Aprovado via Sistema<br>
+                    <strong>Local do Serviço:</strong> Conforme Visita Técnica
+                </td>
+                <td class="info-box">
+                    <h3>Informações da Proposta</h3>
+                    <strong>Data de Emissão:</strong> ${orc.dataGerado}<br>
+                    <strong>Validade da Proposta:</strong> 5 dias após emissão<br>
+                    <strong>Previsão de Entrega:</strong> A combinar após aprovação
+                </td>
+            </tr>
+        </table>
+
+        <table class="tabela-itens">
+            <thead>
+                <tr>
+                    <th style="width: 10%; text-align: center;">Qtd.</th>
+                    <th style="width: 60%;">Descrição do Produto / Serviço</th>
+                    <th style="width: 15%; text-align: right;">Val. Unitário</th>
+                    <th style="width: 15%; text-align: right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center; font-weight: bold;">1</td>
+                    <td style="white-space: pre-wrap;">${orc.descricao}</td>
+                    <td style="text-align: right;">${valOriginalFmt}</td>
+                    <td style="text-align: right;">${valOriginalFmt}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 55%; vertical-align: top;">
+                    <div style="font-size: 13px;">
+                        <strong>Forma de Pagamento Selecionada:</strong><br>
+                        🔹 ${orc.pagamento}
+                    </div>
+                </td>
+                <td style="width: 45%; vertical-align: top;">
+                    <table class="total-container">
+                        <tr>
+                            <td>
+                                <div class="total-box">
+                                    <div>Subtotal: ${valOriginalFmt}</div>
+                                    <div>Descontos/Taxas: ${orc.desconto ? "-5% Aplicado" : "R$ 0,00"}</div>
+                                    <div class="destaque-preco">Valor Líquido: ${valFinalFmt}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <div class="obs-box">
+            <h4>Observações Importantes:</h4>
+            • Orçamento condicionado à visita técnica presencial para validação estrutural final.<br>
+            • Instalações agendadas de segunda a sexta-feira em horário comercial padrão.<br>
+            • Adequações estruturais do vão, remoção de portões antigos e ponto elétrico de alimentação são de responsabilidade do cliente, exceto se contratado previamente.
+        </div>
+
+        <table class="assinatura-container">
+            <tr>
+                <td>
+                    <div class="linha-assinatura"></div>
+                    DPortas Portas de Aço
+                </td>
+                <td>
+                    <div class="linha-assinatura"></div>
+                    Aceite do Cliente (Assinatura/Data)
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    `);
+    
+    janelaImpressao.document.close();
+}
+
+// --- 5. OUTRAS AÇÕES DOS BOTÕES ---
 function alterarEstoque(index, operacao) {
     let acaoTexto = operacao === 'add' ? "ADICIONAR ao" : "REMOVER do";
     let produtoNome = bd.estoque[index].produto;
@@ -151,7 +329,7 @@ function concluirOS(index) {
     salvarTudo();
 }
 
-// --- 5. EVENTOS DE FORMULÁRIO ---
+// --- 6. EVENTOS DE FORMULÁRIO ---
 document.getElementById('formCliente').onsubmit = (e) => {
     e.preventDefault();
     bd.clientes.push({
@@ -171,7 +349,7 @@ document.getElementById('formEstoque').onsubmit = (e) => {
     e.target.reset(); salvarTudo(); alert('Produto salvo!');
 };
 
-// --- ORÇAMENTO: SALVA NO BANCO SILENCIOSAMENTE E ABRE WHATSAPP ---
+// ORÇAMENTO: SALVA, ATUALIZA A TELA E ABRE O WHATSAPP
 document.getElementById('formOrcamento').onsubmit = (e) => {
     e.preventDefault();
     
@@ -179,7 +357,6 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
     let descricao = document.getElementById('orcDesc').value;
     let valorDigitado = document.getElementById('orcValor').value;
     
-    // Converte o que for digitado (ex: 1.173,00 ou 1173) para número do Javascript
     let valorTratado = parseFloat(valorDigitado.replace(/\./g, '').replace(',', '.'));
     let formaPgto = document.getElementById('orcPagamento').value;
 
@@ -192,14 +369,12 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
     let msgDesconto = "";
     let teveDesconto = false;
 
-    // Se for Pix ou Dinheiro, aplica 5% de desconto
     if (formaPgto === "Pix" || formaPgto === "Dinheiro") {
         valorFinal = valorTratado - (valorTratado * 0.05);
         msgDesconto = " *(5% de desconto já aplicado!)*";
         teveDesconto = true;
     }
 
-    // 1. SALVAR NO BANCO DE DADOS LOCAL (Fica oculto na tela, mas gravado)
     bd.orcamentos.push({
         cliente: cliente,
         descricao: descricao,
@@ -209,23 +384,15 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
         desconto: teveDesconto,
         dataGerado: new Date().toLocaleDateString('pt-BR')
     });
-    localStorage.setItem('dp_orcamentos', JSON.stringify(bd.orcamentos));
-
-    // 2. MONTAGEM DA MENSAGEM DO WHATSAPP
-    let valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-    let textoWpp = `*Orçamento - DPortas* 🚪\n\n`;
-    textoWpp += `👤 *Cliente:* ${cliente}\n`;
-    textoWpp += `🛠️ *Serviço:* ${descricao}\n`;
-    textoWpp += `💳 *Forma de Pagamento:* ${formaPgto}\n`;
-    textoWpp += `💰 *Valor Final:* ${valorFormatado}${msgDesconto}\n\n`;
-    textoWpp += `Ficamos à disposição! Podemos confirmar o serviço?`;
-
-    // 3. ABRIR WHATSAPP
-    window.open(`https://wa.me/?text=${encodeURIComponent(textoWpp)}`, '_blank');
     
-    // Limpa os campos do formulário para o próximo uso
     e.target.reset(); 
+    salvarTudo(); // Salva e atualiza listas da tela de forma limpa!
+    alert('Orçamento salvo com sucesso na lista inferior! Abrindo WhatsApp...');
+
+    let valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    let textoWpp = `*Orçamento - DPortas* 🚪\n\n👤 *Cliente:* ${cliente}\n🛠️ *Serviço:* ${descricao}\n💳 *Forma de Pagamento:* ${formaPgto}\n💰 *Valor Final:* ${valorFormatado}${msgDesconto}\n\nFicamos à disposição!`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(textoWpp)}`, '_blank');
 };
 
 document.getElementById('formOS').onsubmit = (e) => {
