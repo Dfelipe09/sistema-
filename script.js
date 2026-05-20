@@ -55,12 +55,10 @@ function atualizarTodasListas() {
     });
     document.getElementById('listaEstoque').innerHTML = "<h3>Estoque Atual</h3>" + htmlEstoque;
 
-    // Orçamentos (ATUALIZADO COM FORMA DE PAGAMENTO E DESCONTO)
+    // Orçamentos
     let htmlOrc = bd.orcamentos.length ? "" : "<p>Nenhum orçamento salvo.</p>";
     bd.orcamentos.forEach((o, i) => {
         let valorFormatado = o.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        
-        // Verifica se teve desconto para mostrar uma tag verde bonita
         let badgeDesconto = o.desconto ? `<span style="color: #27ae60; font-size: 12px; font-weight: bold; margin-left: 5px;">(5% OFF aplicado)</span>` : "";
         let formaPag = o.pagamento ? o.pagamento : "Não informada";
 
@@ -190,10 +188,12 @@ document.getElementById('formEstoque').onsubmit = (e) => {
     e.target.reset(); salvarTudo(); alert('Produto salvo!');
 };
 
-// ORÇAMENTOS: SALVANDO E CALCULANDO DESCONTO
+// ORÇAMENTO: SALVAR NO SISTEMA E ABRIR WHATSAPP
 document.getElementById('formOrcamento').onsubmit = (e) => {
     e.preventDefault();
     
+    let cliente = document.getElementById('orcCliente').value;
+    let descricao = document.getElementById('orcDesc').value;
     let valorDigitado = document.getElementById('orcValor').value;
     let valorTratado = parseFloat(valorDigitado.replace(/\./g, '').replace(',', '.'));
     let formaPgto = document.getElementById('orcPagamento').value;
@@ -204,24 +204,42 @@ document.getElementById('formOrcamento').onsubmit = (e) => {
     }
 
     let valorFinal = valorTratado;
+    let msgDesconto = "";
     let teveDesconto = false;
 
     // Se for Pix ou Dinheiro, aplica 5% de desconto
     if (formaPgto === "Pix" || formaPgto === "Dinheiro") {
         valorFinal = valorTratado - (valorTratado * 0.05);
+        msgDesconto = " *(5% de desconto já aplicado!)*";
         teveDesconto = true;
     }
 
+    // 1. SALVAR NO SISTEMA
     bd.orcamentos.push({
-        cliente: document.getElementById('orcCliente').value,
-        descricao: document.getElementById('orcDesc').value,
+        cliente: cliente,
+        descricao: descricao,
         valorOriginal: valorTratado,
         valor: valorFinal,
         pagamento: formaPgto,
         desconto: teveDesconto
     });
+    salvarTudo(); // Atualiza a lista na tela e salva os dados
+
+    // 2. ENVIAR PARA WHATSAPP
+    let valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    let textoWpp = `*Orçamento - DPortas* 🚪\n\n`;
+    textoWpp += `👤 *Cliente:* ${cliente}\n`;
+    textoWpp += `🛠️ *Serviço:* ${descricao}\n`;
+    textoWpp += `💳 *Forma de Pagamento:* ${formaPgto}\n`;
+    textoWpp += `💰 *Valor Final:* ${valorFormatado}${msgDesconto}\n\n`;
+    textoWpp += `Podemos confirmar o serviço?`;
+
+    // Abre a janela do WhatsApp
+    window.open(`https://wa.me/?text=${encodeURIComponent(textoWpp)}`, '_blank');
     
-    e.target.reset(); salvarTudo(); alert('Orçamento salvo com sucesso!');
+    // Limpa os campos do formulário
+    e.target.reset(); 
 };
 
 document.getElementById('formOS').onsubmit = (e) => {
