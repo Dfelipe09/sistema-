@@ -1,0 +1,134 @@
+{
+  "name": "Sistema DPortas - Gerenciamento Profissional",
+  "short_name": "DPortas",
+  "description": "Sistema completo de gerenciamento para DPortas Automatizações - Clientes, Estoque, Orçamentos, O.S. e Agenda",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "dir": "ltr",
+  "lang": "pt-BR",
+  
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23667eea' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle'>D</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23667eea' width='512' height='512'/><text x='50%' y='50%' font-size='300' fill='white' text-anchor='middle' dominant-baseline='middle'>D</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'><rect fill='%23667eea' width='1024' height='1024'/><text x='50%' y='50%' font-size='600' fill='white' text-anchor='middle' dominant-baseline='middle'>D</text></svg>",
+      "sizes": "1024x1024",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  
+  "categories": ["business", "productivity"],
+  
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><defs><linearGradient id='grad'><stop offset='0%' style='stop-color:%23667eea;stop-opacity:1' /><stop offset='100%' style='stop-color:%23764ba2;stop-opacity:1' /></linearGradient></defs><rect fill='url(%23grad)' width='540' height='720'/><text x='50%' y='150' font-size='80' fill='white' text-anchor='middle' font-weight='bold'>DPortas</text><text x='50%' y='250' font-size='40' fill='white' text-anchor='middle'>Sistema v2.0</text><text x='50%' y='350' font-size='30' fill='white' text-anchor='middle'>Gerenciamento</text><text x='50%' y='400' font-size='30' fill='white' text-anchor='middle'>Profissional</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><defs><linearGradient id='grad'><stop offset='0%' style='stop-color:%23667eea;stop-opacity:1' /><stop offset='100%' style='stop-color:%23764ba2;stop-opacity:1' /></linearGradient></defs><rect fill='url(%23grad)' width='1280' height='720'/><text x='640' y='200' font-size='120' fill='white' text-anchor='middle' font-weight='bold'>DPortas</text><text x='640' y='350' font-size='60' fill='white' text-anchor='middle'>Sistema Gerenciamento</text><text x='640' y='450' font-size='50' fill='white' text-anchor='middle'>Versão 2.0 - Profissional</text></svg>",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  
+  "shortcuts": [
+    {
+      "name": "Adicionar Cliente",
+      "short_name": "Novo Cliente",
+      "description": "Cadastrar um novo cliente rapidamente",
+      "url": "/?page=clientes",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2327ae60' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle'>+</text></svg>",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Ver Orçamentos",
+      "short_name": "Orçamentos",
+      "description": "Visualizar orçamentos pendentes",
+      "url": "/?page=orcamentos",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23f39c12' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle'>💰</text></svg>",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Agenda",
+      "short_name": "Agendamentos",
+      "description": "Ver próximas visitas agendadas",
+      "url": "/?page=agenda",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%233498db' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle'>📅</text></svg>",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  
+  "prefer_related_applications": false,
+  
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": ["image/*", "video/*", "audio/*"]
+        }
+      ]
+    }
+  },
+  
+  "screenshots_description": [
+    {
+      "src": "Interface Mobile - DPortas Sistema",
+      "description": "Tela principal do sistema em dispositivo mobile com menu de navegação"
+    },
+    {
+      "src": "Interface Desktop - DPortas Sistema",
+      "description": "Tela completa do sistema em desktop com todos os módulos acessíveis"
+    }
+  ],
+  
+  "categories_translated": {
+    "pt-BR": ["negócios", "produtividade"]
+  },
+  
+  "screenshots_alt": {
+    "narrow": "Tela do aplicativo DPortas em dispositivo mobile com interface completa",
+    "wide": "Tela do aplicativo DPortas em desktop com painéis expandidos"
+  },
+  
+  "note": "Sistema DPortas v2.0 - Gerenciamento Profissional para Automatizações. Suporta modo offline com sincronização automática."
+}
